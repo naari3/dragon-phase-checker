@@ -2,7 +2,6 @@ package com.example;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
-import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
@@ -10,6 +9,7 @@ import net.minecraft.entity.ai.pathing.PathNode;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.network.MessageType;
 import net.minecraft.text.LiteralText;
+import net.minecraft.world.Heightmap;
 
 import static net.minecraft.server.command.CommandManager.*;
 
@@ -48,20 +48,25 @@ public class ExampleMod implements ModInitializer {
 										"PathNode " + i + ": " + pathNode.x + ", " + pathNode.y + ", " + pathNode.z);
 								// set beacon at pathNode
 								var pos = pathNode.getPos();
-								world.setBlockState(pos, Blocks.BEACON.getDefaultState());
+								var topPos = world.getTopPosition(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, pos);
+
+								world.setBlockState(topPos.add(0, -2, 0), Blocks.BEACON.getDefaultState());
 								// set iron block for beacon to shine through
 								for (int j = -1; j < 2; j++) {
 									for (int k = -1; k < 2; k++) {
-										world.setBlockState(pos.add(j, -1, k), Blocks.IRON_BLOCK.getDefaultState());
+										world.setBlockState(topPos.add(j, -3, k), Blocks.IRON_BLOCK.getDefaultState());
 									}
 								}
-
-								var lowGlassBlock = this.getGlassBlockFromIndex(i % 16);
-								world.setBlockState(pos.add(0, 1, 0), lowGlassBlock.getDefaultState());
-								if (i > 15) {
-									var highGlassBlock = this.getGlassBlockFromIndex((i + 1) % 16);
-									world.setBlockState(pos.add(0, 2, 0), highGlassBlock.getDefaultState());
+								var glassBlock = Blocks.WHITE_STAINED_GLASS;
+								if (i < 12) {
+									glassBlock = Blocks.WHITE_STAINED_GLASS;
+								} else if (i < 20) {
+									glassBlock = Blocks.LIGHT_BLUE_STAINED_GLASS;
+								} else {
+									glassBlock = Blocks.RED_STAINED_GLASS;
 								}
+
+								world.setBlockState(topPos.add(0, -1, 0), glassBlock.getDefaultState());
 
 								var armorStand = new ArmorStandEntity(EntityType.ARMOR_STAND, world);
 								armorStand.setInvisible(true);
@@ -69,7 +74,7 @@ public class ExampleMod implements ModInitializer {
 								armorStand.setCustomNameVisible(true);
 								armorStand.setCustomName(new LiteralText("PathNode " + i));
 
-								armorStand.updatePosition(pos.getX() + 0.5, pos.getY() + 1.5,
+								armorStand.updatePosition(pos.getX() + 0.5, pos.getY() + 0.5,
 										pos.getZ() + 0.5);
 
 								world.spawnEntity(armorStand);
@@ -97,60 +102,5 @@ public class ExampleMod implements ModInitializer {
 	private void sendToChat(String message) {
 		var mc = MinecraftClient.getInstance();
 		mc.inGameHud.addChatMessage(MessageType.SYSTEM, new LiteralText(message), mc.player.getUuid());
-	}
-
-	private Block getGlassBlockFromIndex(int i) {
-		var glassBlock = Blocks.WHITE_STAINED_GLASS;
-		switch (i) {
-			case 0:
-				glassBlock = Blocks.WHITE_STAINED_GLASS;
-				break;
-			case 1:
-				glassBlock = Blocks.ORANGE_STAINED_GLASS;
-				break;
-			case 2:
-				glassBlock = Blocks.MAGENTA_STAINED_GLASS;
-				break;
-			case 3:
-				glassBlock = Blocks.LIGHT_BLUE_STAINED_GLASS;
-				break;
-			case 4:
-				glassBlock = Blocks.YELLOW_STAINED_GLASS;
-				break;
-			case 5:
-				glassBlock = Blocks.LIME_STAINED_GLASS;
-				break;
-			case 6:
-				glassBlock = Blocks.PINK_STAINED_GLASS;
-				break;
-			case 7:
-				glassBlock = Blocks.GRAY_STAINED_GLASS;
-				break;
-			case 8:
-				glassBlock = Blocks.LIGHT_GRAY_STAINED_GLASS;
-				break;
-			case 9:
-				glassBlock = Blocks.CYAN_STAINED_GLASS;
-				break;
-			case 10:
-				glassBlock = Blocks.PURPLE_STAINED_GLASS;
-				break;
-			case 11:
-				glassBlock = Blocks.BLUE_STAINED_GLASS;
-				break;
-			case 12:
-				glassBlock = Blocks.BROWN_STAINED_GLASS;
-				break;
-			case 13:
-				glassBlock = Blocks.GREEN_STAINED_GLASS;
-				break;
-			case 14:
-				glassBlock = Blocks.RED_STAINED_GLASS;
-				break;
-			case 15:
-				glassBlock = Blocks.BLACK_STAINED_GLASS;
-				break;
-		}
-		return glassBlock;
 	}
 }
